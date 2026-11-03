@@ -1,11 +1,14 @@
+// Result screen (route '/second'): reads the User passed as a route argument
+// and shows each mark, Total, Average, Percentage and a letter grade.
+
 import 'package:flutter/material.dart';
+import 'main.dart' show kNavy, kBlue, kHighlighter, kMint, kMuted;
 import 'user_data_model.dart';
 
-// Screen 2 - Student Result Screen.
 class SecondScreen extends StatelessWidget {
   const SecondScreen({super.key});
 
-  // Shows 78 as "78" and 82.666 as "82.67".
+  // 78.0 -> "78", 82.5 -> "82.50"
   static String _format(double value) {
     return value == value.roundToDouble()
         ? value.toStringAsFixed(0)
@@ -14,7 +17,7 @@ class SecondScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Reading data passed from the previous screen.
+    // Receive the User sent by Navigator.pushNamed(..., arguments: user)
     final user = ModalRoute.of(context)!.settings.arguments as User;
 
     return Scaffold(
@@ -28,131 +31,170 @@ class SecondScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Student details card
-                  Card(
-                    elevation: 5,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        child: Icon(Icons.person),
-                      ),
-                      title: Text(
-                        'Name: ${user.name}',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                  // Student identity
+                  _Panel(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: kHighlighter,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.person, color: kNavy),
                         ),
-                      ),
-                      subtitle: Text('Reg No: ${user.regNo}'),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Name: ${user.name}',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: kNavy,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Reg No: ${user.regNo}',
+                                style: const TextStyle(color: kMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
 
-                  // Subject marks card
-                  Card(
-                    elevation: 5,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
+                  // Percentage ring with the grade
+                  _Panel(
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 110,
+                          height: 110,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Icon(Icons.menu_book, color: Colors.green),
-                              SizedBox(width: 10),
-                              Text(
-                                'Subject Marks',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
+                              SizedBox(
+                                width: 110,
+                                height: 110,
+                                child: CircularProgressIndicator(
+                                  value: user.percentage / 100,
+                                  strokeWidth: 10,
+                                  strokeCap: StrokeCap.round,
+                                  color: kBlue,
+                                  backgroundColor: const Color(0xFFE1EDF8),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: FittedBox(
+                                  child: Text(
+                                    '${user.percentage.toStringAsFixed(2)}%',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: kNavy,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const Divider(height: 24),
-                          for (var i = 0; i < user.marks.length; i++)
-                            _MarkRow(
-                              label: 'Mark ${i + 1}',
-                              mark: user.marks[i],
-                              text: '${_format(user.marks[i])} / 100',
-                            ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 18),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Percentage',
+                                  style: TextStyle(color: kMuted)),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: kHighlighter,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'Grade ${user.grade}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: kNavy,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
 
-                  // Result card: total, average and percentage
-                  Card(
-                    elevation: 5,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.calculate, color: Colors.blue),
-                              SizedBox(width: 10),
-                              Text(
-                                'Result',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                  // Subject marks
+                  _Panel(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _PanelTitle(
+                            icon: Icons.menu_book, title: 'Subject Marks'),
+                        const SizedBox(height: 8),
+                        for (var i = 0; i < user.marks.length; i++)
+                          _MarkRow(
+                            label: 'Mark ${i + 1}',
+                            mark: user.marks[i],
+                            text: '${_format(user.marks[i])} / 100',
                           ),
-                          const Divider(height: 24),
-                          _ResultRow(
-                            label: 'Total Marks',
-                            value: '${_format(user.total)} / 300',
-                          ),
-                          _ResultRow(
-                            label: 'Average Marks',
-                            value: user.average.toStringAsFixed(2),
-                          ),
-                          _ResultRow(
-                            label: 'Percentage',
-                            value: '${user.percentage.toStringAsFixed(2)}%',
-                            highlight: true,
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: user.percentage / 100,
-                              minHeight: 10,
-                              color: Colors.deepOrange,
-                              backgroundColor: Colors.orange.shade50,
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Totals
+                  _Panel(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _PanelTitle(
+                            icon: Icons.calculate, title: 'Result'),
+                        const SizedBox(height: 8),
+                        _ResultRow(
+                          label: 'Total Marks',
+                          value: '${_format(user.total)} / 300',
+                        ),
+                        _ResultRow(
+                          label: 'Average Marks',
+                          value: user.average.toStringAsFixed(2),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  ElevatedButton.icon(
+                  // Back: pops this route off the Navigator stack
+                  FilledButton.icon(
                     key: const Key('back'),
                     onPressed: () {
-                      // Return to the previous screen (Student Input Screen).
                       Navigator.pop(context);
                     },
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Back'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: kNavy,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       textStyle: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -166,6 +208,52 @@ class SecondScreen extends StatelessWidget {
   }
 }
 
+// White rounded container used for each block on the page
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD9E6F3)),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _PanelTitle extends StatelessWidget {
+  const _PanelTitle({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: kBlue),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: kNavy,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// One subject: label, "78 / 100" and a thin progress bar
 class _MarkRow extends StatelessWidget {
   const _MarkRow({required this.label, required this.mark, required this.text});
 
@@ -184,7 +272,7 @@ class _MarkRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label),
-              Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(text, style: const TextStyle(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 6),
@@ -193,8 +281,8 @@ class _MarkRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: mark / 100,
               minHeight: 6,
-              color: Colors.green,
-              backgroundColor: Colors.green.shade50,
+              color: kMint,
+              backgroundColor: const Color(0xFFDDF4F1),
             ),
           ),
         ],
@@ -204,15 +292,10 @@ class _MarkRow extends StatelessWidget {
 }
 
 class _ResultRow extends StatelessWidget {
-  const _ResultRow({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
+  const _ResultRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -224,10 +307,10 @@ class _ResultRow extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 15)),
           Text(
             value,
-            style: TextStyle(
-              fontSize: highlight ? 18 : 15,
-              fontWeight: FontWeight.bold,
-              color: highlight ? Colors.deepOrange : Colors.black87,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: kNavy,
             ),
           ),
         ],

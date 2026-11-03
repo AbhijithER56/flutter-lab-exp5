@@ -30,4 +30,15 @@ class User {
 
   // Percentage = (Total / Maximum Total) x 100
   double get percentage => (total / (maxMarkPerSubject * subjectCount)) * 100;
+
+  // Letter grade shown on the result screen
+  String get grade {
+    final p = percentage;
+    if (p >= 90) return 'O';
+    if (p >= 80) return 'A+';
+    if (p >= 70) return 'A';
+    if (p >= 60) return 'B';
+    if (p >= 50) return 'C';
+    return 'F';
+  }
 }

@@ -1,8 +1,10 @@
+// Input screen (route '/'): collects the student details and marks,
+// validates them, then navigates to '/second' passing a User object.
+
 import 'package:flutter/material.dart';
+import 'main.dart' show kNavy, kBlue, kHighlighter, kMuted;
 import 'user_data_model.dart';
 
-// Screen 1 - Student Input Screen.
-// StatefulWidget because it owns the form key and text controllers.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -11,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Reaches the Form's validate()/reset()
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -29,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  // ---------------- Validators ----------------
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter the student name.';
@@ -63,9 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return null;
   }
 
+  // ---------------- Actions ----------------
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      // Read form input and store it as a User object.
       final user = User(
         name: _nameController.text.trim(),
         regNo: _regNoController.text.trim(),
@@ -74,16 +78,19 @@ class _HomeScreenState extends State<HomeScreen> {
         mark3: double.parse(_mark3Controller.text.trim()),
       );
 
-      // Pass the object to the result screen using arguments.
+      // Named route + route arguments
       Navigator.pushNamed(context, '/second', arguments: user);
 
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('Student Details Submitted..'),
+          SnackBar(
+            content: const Text('Student Details Submitted..'),
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+            backgroundColor: kNavy,
+            duration: const Duration(seconds: 2),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
     }
@@ -98,13 +105,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _mark3Controller.clear();
   }
 
+  // ---------------- UI helpers ----------------
   InputDecoration _decoration(String label, IconData icon) {
+    OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: c, width: w),
+        );
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
-      border: const OutlineInputBorder(),
+      prefixIcon: Icon(icon, color: kBlue),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: const Color(0xFFF6FAFE),
+      border: border(const Color(0xFFD3E2F1)),
+      enabledBorder: border(const Color(0xFFD3E2F1)),
+      focusedBorder: border(kBlue, 1.8),
     );
   }
 
@@ -112,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return TextFormField(
       key: Key(label),
       controller: controller,
-      decoration: _decoration(label, Icons.menu_book_outlined),
+      decoration: _decoration(label, Icons.edit_note),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       textInputAction: TextInputAction.next,
       validator: (value) => _validateMark(value, label),
@@ -129,96 +143,129 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
-              child: Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Banner: icon + heading + hint, with a highlighter underline
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: kNavy,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Row(
                       children: [
-                        const Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.deepPurple,
-                              foregroundColor: Colors.white,
-                              child: Icon(Icons.school),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: kHighlighter,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.school, color: kNavy),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
                                 'Academic Performance Calculator',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Enter student details and marks (out of 100).',
-                          style: TextStyle(color: Colors.black54),
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          key: const Key('Student Name'),
-                          controller: _nameController,
-                          decoration: _decoration('Student Name', Icons.person),
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          validator: _validateName,
-                        ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          key: const Key('Registration Number'),
-                          controller: _regNoController,
-                          decoration: _decoration(
-                            'Registration Number',
-                            Icons.badge_outlined,
+                              SizedBox(height: 4),
+                              Text(
+                                'Enter student details and marks (out of 100).',
+                                style: TextStyle(
+                                    color: Color(0xFFB9C8DC), fontSize: 12),
+                              ),
+                            ],
                           ),
-                          textInputAction: TextInputAction.next,
-                          validator: _validateRegNo,
-                        ),
-                        const SizedBox(height: 14),
-                        _markField(_mark1Controller, 'Mark 1'),
-                        const SizedBox(height: 14),
-                        _markField(_mark2Controller, 'Mark 2'),
-                        const SizedBox(height: 14),
-                        _markField(_mark3Controller, 'Mark 3'),
-                        const SizedBox(height: 22),
-                        ElevatedButton.icon(
-                          key: const Key('submit'),
-                          onPressed: _submit,
-                          icon: const Icon(Icons.send),
-                          label: const Text('Submit'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextButton.icon(
-                          key: const Key('clear'),
-                          onPressed: _clear,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Clear'),
                         ),
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.white,
+                    elevation: 0,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(22),
+                      side: const BorderSide(color: Color(0xFFD9E6F3)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextFormField(
+                              key: const Key('Student Name'),
+                              controller: _nameController,
+                              decoration:
+                                  _decoration('Student Name', Icons.person),
+                              textCapitalization: TextCapitalization.words,
+                              textInputAction: TextInputAction.next,
+                              validator: _validateName,
+                            ),
+                            const SizedBox(height: 14),
+                            TextFormField(
+                              key: const Key('Registration Number'),
+                              controller: _regNoController,
+                              decoration: _decoration(
+                                'Registration Number',
+                                Icons.badge_outlined,
+                              ),
+                              textInputAction: TextInputAction.next,
+                              validator: _validateRegNo,
+                            ),
+                            const SizedBox(height: 14),
+                            _markField(_mark1Controller, 'Mark 1'),
+                            const SizedBox(height: 14),
+                            _markField(_mark2Controller, 'Mark 2'),
+                            const SizedBox(height: 14),
+                            _markField(_mark3Controller, 'Mark 3'),
+                            const SizedBox(height: 22),
+                            FilledButton.icon(
+                              key: const Key('submit'),
+                              onPressed: _submit,
+                              icon: const Icon(Icons.arrow_forward),
+                              label: const Text('Submit'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: kBlue,
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              key: const Key('clear'),
+                              onPressed: _clear,
+                              style: TextButton.styleFrom(
+                                  foregroundColor: kMuted),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Clear'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
